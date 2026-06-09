@@ -24,3 +24,14 @@ buildNumber.properties
 **/compiler.xml
 **/.gitignore
 .idea
+/sql/**
+/renren-fast/LICENSE
+/renren-generator/LICENSE
+/renren-fast/README.md
+/renren-generator/README.md
+/renren-fast.zip
+/renren-fast-vue.zip
+/renren-generator.zip
+/tips.txt
+**/rebel.xml
+**/**.iml

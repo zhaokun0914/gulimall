@@ -5,6 +5,8 @@ import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.coupon.entity.CouponEntity;
 import com.atguigu.gulimall.coupon.service.CouponService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -20,9 +22,31 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("coupon/coupon")
+@RefreshScope
 public class CouponController {
     @Autowired
     private CouponService couponService;
+
+    @Value("${my.name}")
+    private String name;
+    @Value("${my.version}")
+    private String version;
+    @Value("${my.max-count}")
+    private Integer maxCount;
+    @Value("${my.open}")
+    private Boolean isOpen;
+
+    @GetMapping("/test")
+    public R test() {
+        return R.ok().put("mesage：", name).put("版本：", version).put("最大数量：", maxCount).put("是否开启：", isOpen);
+    }
+
+    @RequestMapping("/member/list")
+    public R membercoupons() {
+        CouponEntity coupon = new CouponEntity();
+        coupon.setCouponName("6000-500");
+        return R.ok().put("coupons", Arrays.asList(coupon));
+    }
 
     /**
      * 列表

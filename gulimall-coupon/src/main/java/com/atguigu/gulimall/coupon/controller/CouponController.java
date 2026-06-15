@@ -20,9 +20,9 @@ import java.util.Map;
  * @email Kavin@gmail.com
  * @date 2026-06-09 20:30:41
  */
+@RefreshScope
 @RestController
 @RequestMapping("coupon/coupon")
-@RefreshScope
 public class CouponController {
     @Autowired
     private CouponService couponService;

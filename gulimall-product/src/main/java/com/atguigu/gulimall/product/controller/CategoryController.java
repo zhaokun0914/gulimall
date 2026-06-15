@@ -1,6 +1,5 @@
 package com.atguigu.gulimall.product.controller;
 
-import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.product.entity.CategoryEntity;
 import com.atguigu.gulimall.product.service.CategoryService;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -27,12 +27,11 @@ public class CategoryController {
     /**
      * 列表
      */
-    @RequestMapping("/list")
-    //@RequiresPermissions("product:category:list")
+    @RequestMapping("/list/tree")
     public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = categoryService.queryPage(params);
+        List<CategoryEntity> categories = categoryService.listWithTree();
 
-        return R.ok().put("page", page);
+        return R.ok().put("page", categories);
     }
 
 
@@ -40,7 +39,6 @@ public class CategoryController {
      * 信息
      */
     @RequestMapping("/info/{catId}")
-    //@RequiresPermissions("product:category:info")
     public R info(@PathVariable("catId") Long catId){
             CategoryEntity category = categoryService.getById(catId);
 

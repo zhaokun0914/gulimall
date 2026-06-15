@@ -31,8 +31,6 @@
         <module>gulimall-product</module>
         <module>gulimall-ware</module>
         <module>gulimall-getway</module>
-        <module>renren-fast</module>
-        <module>renren-generator</module>
     </modules>
 
     <dependencyManagement>

@@ -25,13 +25,24 @@ buildNumber.properties
 **/.gitignore
 .idea
 /sql/**
-/renren-fast/LICENSE
-/renren-generator/LICENSE
-/renren-fast/README.md
-/renren-generator/README.md
-/renren-fast.zip
 /renren-fast-vue.zip
+/renren-fast/LICENSE
+/renren-fast/README.md
+/renren-fast.zip
 /renren-generator.zip
+/renren-generator/LICENSE
+/renren-generator/README.md
 /tips.txt
 **/rebel.xml
 **/**.iml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Scraper output
+/output/
+/nacos-server-1.1.3.zip
+/scripts/**
+/nacos/**

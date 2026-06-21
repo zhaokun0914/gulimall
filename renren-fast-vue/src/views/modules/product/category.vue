@@ -1,5 +1,14 @@
 <template>
-  <el-tree :data="data" :props="defaultProps" @node-click="handleNodeClick"></el-tree>
+  <el-tree :data="menus" :props="defaultProps" show-checkbox
+           :expand-on-click-node="false" node-key="catId">
+      <span class="custom-tree-node" slot-scope="{ node, data }">
+        <span>{{ node.label }}</span>
+        <span>
+          <el-button v-if="node.level <= 2" type="text" size="mini" @click="() => append(data)">Append</el-button>
+          <el-button v-if="node.childNodes.length === 0" type="text" size="mini" @click="() => remove(node, data)">Delete</el-button>
+        </span>
+      </span>
+  </el-tree>
 </template>
 
 <script>
@@ -13,7 +22,11 @@ export default {
   props: {},
   data () {
     return {
-      data: []
+      menus: [],
+      defaultProps: {
+        children: 'children',
+        label: 'name'
+      }
     }
   },
   // 计算属性类似于data概念
@@ -22,15 +35,19 @@ export default {
   watch: {},
   // 方法集合
   methods: {
-    handleNodeClick (data) {
-      console.log(data)
+    append (data) {
+      console.log('append', data)
+    },
+    remove (node, data) {
+      console.log('remove', node, data)
     },
     getMenus () {
       this.$http({
         url: this.$http.adornUrl('/product/category/list/tree'),
         method: 'get'
       }).then(({data}) => {
-        this.data = data
+        console.log(data)
+        this.menus = data.page
       })
     }
   },

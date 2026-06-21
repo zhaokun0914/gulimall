@@ -48,7 +48,7 @@ public class CategoryController {
     /**
      * 保存
      */
-    @RequestMapping("/save")
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
     //@RequiresPermissions("product:category:save")
     public R save(@RequestBody CategoryEntity category){
             categoryService.save(category);
@@ -69,11 +69,14 @@ public class CategoryController {
 
     /**
      * 删除
+     * @RequestBody：获取请求体，必须发送POST请求
+     * SpringMVC自动将请求体的数据(json)，转换为对应的对象
      */
-    @RequestMapping("/delete")
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
     //@RequiresPermissions("product:category:delete")
     public R delete(@RequestBody Long[] catIds){
-            categoryService.removeByIds(Arrays.asList(catIds));
+        categoryService.removeMenusByIds(Arrays.asList(catIds));
+        categoryService.removeByIds(Arrays.asList(catIds));
 
         return R.ok();
     }

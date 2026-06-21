@@ -1,6 +1,11 @@
 <template>
-  <el-tree :data="menus" :props="defaultProps" show-checkbox
-           :expand-on-click-node="false" node-key="catId">
+  <div>
+    <el-tree :data="menus"
+             :props="defaultProps"
+             show-checkbox
+             node-key="catId"
+             :expand-on-click-node="false"
+             :default-expanded-keys="expandedKey">
       <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
         <span>
@@ -8,7 +13,23 @@
           <el-button v-if="node.childNodes.length === 0" type="text" size="mini" @click="() => remove(node, data)">Delete</el-button>
         </span>
       </span>
-  </el-tree>
+    </el-tree>
+
+    <el-dialog
+      title="提示"
+      width="30%"
+      :visible.sync="dialogVisible">
+      <el-form :model="category">
+        <el-form-item label="菜单名称">
+          <el-input v-model="category.name" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addCategory">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -22,7 +43,10 @@ export default {
   props: {},
   data () {
     return {
+      category: {'name': '', 'parentCid': 0, 'catLevel': 0, 'showStatus': 1, 'sort': 0, 'productCount': 0},
       menus: [],
+      expandedKey: [],
+      dialogVisible: false,
       defaultProps: {
         children: 'children',
         label: 'name'
@@ -37,9 +61,53 @@ export default {
   methods: {
     append (data) {
       console.log('append', data)
+      this.dialogVisible = true
+      this.category.parentCid = data.catId
+      this.category.catLevel = data.catLevel * 1 + 1
+    },
+    addCategory () {
+      console.log('提交的三级分类数据：', this.category)
+      this.$http({
+        url: this.$http.adornUrl('/product/category/save'),
+        method: 'post',
+        data: this.$http.adornData(this.category, false)
+      }).then(({data}) => {
+        this.$message({
+          type: 'success',
+          message: '菜单添加成功!'
+        })
+        // 关闭对话框
+        this.dialogVisible = false
+        this.getMenus()
+        this.expandedKey = [this.category.parentCid]
+      })
     },
     remove (node, data) {
       console.log('remove', node, data)
+      var ids = [data.catId]
+      this.$confirm(`是否删除【${data.name}】菜单?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$http({
+          url: this.$http.adornUrl('/product/category/delete'),
+          method: 'post',
+          data: this.$http.adornData(ids, false)
+        }).then(({data}) => {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          this.expandedKey = [node.parent.data.catId]
+          this.getMenus()
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
     },
     getMenus () {
       this.$http({

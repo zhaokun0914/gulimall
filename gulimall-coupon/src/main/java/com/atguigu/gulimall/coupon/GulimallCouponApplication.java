@@ -11,6 +11,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class GulimallCouponApplication {
 
     public static void main(String[] args) {
+        System.setProperty("socksProxyHost", "");
         SpringApplication.run(GulimallCouponApplication.class, args);
     }
 

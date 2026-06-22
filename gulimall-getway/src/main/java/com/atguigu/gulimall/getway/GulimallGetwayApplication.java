@@ -10,6 +10,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class GulimallGetwayApplication {
 
     public static void main(String[] args) {
+        System.setProperty("socksProxyHost", "");
         SpringApplication.run(GulimallGetwayApplication.class, args);
     }
 

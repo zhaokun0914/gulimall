@@ -10,23 +10,30 @@
         <span>{{ node.label }}</span>
         <span>
           <el-button v-if="node.level <= 2" type="text" size="mini" @click="() => append(data)">Append</el-button>
+          <el-button type="text" size="mini" @click="() => edit(data)">Edit</el-button>
           <el-button v-if="node.childNodes.length === 0" type="text" size="mini" @click="() => remove(node, data)">Delete</el-button>
         </span>
       </span>
     </el-tree>
 
     <el-dialog
-      title="提示"
+      :title="dialogType === 'add' ? '新增分类' : '修改分类'"
       width="30%"
       :visible.sync="dialogVisible">
-      <el-form :model="category">
-        <el-form-item label="菜单名称">
-          <el-input v-model="category.name" autocomplete="off"></el-input>
+      <el-form ref="form" :model="dialogData">
+        <el-form-item label="菜单名称" prop="name">
+          <el-input v-model="dialogData.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-input v-model="dialogData.icon" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="计量单位" prop="productUnit">
+          <el-input v-model="dialogData.productUnit" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addCategory">确 定</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitCategory">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -43,7 +50,17 @@ export default {
   props: {},
   data () {
     return {
-      category: {'name': '', 'parentCid': 0, 'catLevel': 0, 'showStatus': 1, 'sort': 0, 'productCount': 0},
+      dialogType: '',
+      dialogData: {
+        'name': '',
+        'parentCid': 0,
+        'catLevel': 0,
+        'showStatus': 1,
+        'sort': 0,
+        'icon': null,
+        'productUnit': null,
+        'productCount': 0
+      },
       menus: [],
       expandedKey: [],
       dialogVisible: false,
@@ -61,25 +78,52 @@ export default {
   methods: {
     append (data) {
       console.log('append', data)
+      this.dialogType = 'add'
+      this.dialogData = {
+        'name': '',
+        'parentCid': data.catId,
+        'catLevel': data.catLevel * 1 + 1,
+        'showStatus': 1,
+        'sort': 0,
+        'icon': null,
+        'productUnit': null,
+        'productCount': 0
+      }
+      this.$nextTick(() => {
+        if (this.$refs.form) {
+          this.$refs.form.resetFields()
+        }
+      })
       this.dialogVisible = true
-      this.category.parentCid = data.catId
-      this.category.catLevel = data.catLevel * 1 + 1
     },
-    addCategory () {
-      console.log('提交的三级分类数据：', this.category)
+    edit (data) {
+      console.log('edit', data)
+      this.dialogType = 'edit'
+      this.dialogVisible = true
+      // 通过后台查询最新的数据显示
       this.$http({
-        url: this.$http.adornUrl('/product/category/save'),
+        url: this.$http.adornUrl(`/product/category/info/${data.catId}`),
+        method: 'get'
+      }).then(({data}) => {
+        // 请求成功
+        console.log('要回显的数据', data)
+        this.dialogData = {...data.data}// {...data} 会把 data 对象上所有可枚举属性都拷贝到 dialogData 中，包括 catId
+      })
+    },
+    submitCategory () {
+      const url = this.dialogType === 'add' ? '/product/category/save' : '/product/category/update'
+      this.$http({
+        url: this.$http.adornUrl(url),
         method: 'post',
-        data: this.$http.adornData(this.category, false)
+        data: this.$http.adornData(this.dialogData, false)
       }).then(({data}) => {
         this.$message({
           type: 'success',
-          message: '菜单添加成功!'
+          message: this.dialogType === 'add' ? '菜单添加成功!' : '菜单修改成功!'
         })
-        // 关闭对话框
         this.dialogVisible = false
         this.getMenus()
-        this.expandedKey = [this.category.parentCid]
+        this.expandedKey = [this.dialogData.parentCid]
       })
     },
     remove (node, data) {

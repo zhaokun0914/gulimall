@@ -28,7 +28,7 @@ public class CategoryController {
      * 列表
      */
     @RequestMapping("/list/tree")
-    public R list(@RequestParam Map<String, Object> params){
+    public R list(@RequestParam Map<String, Object> params) {
         List<CategoryEntity> categories = categoryService.listWithTree();
 
         return R.ok().put("page", categories);
@@ -39,10 +39,10 @@ public class CategoryController {
      * 信息
      */
     @RequestMapping("/info/{catId}")
-    public R info(@PathVariable("catId") Long catId){
-            CategoryEntity category = categoryService.getById(catId);
+    public R info(@PathVariable("catId") Long catId) {
+        CategoryEntity category = categoryService.getById(catId);
 
-        return R.ok().put("category", category);
+        return R.ok().put("data", category);
     }
 
     /**
@@ -50,8 +50,8 @@ public class CategoryController {
      */
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     //@RequiresPermissions("product:category:save")
-    public R save(@RequestBody CategoryEntity category){
-            categoryService.save(category);
+    public R save(@RequestBody CategoryEntity category) {
+        categoryService.save(category);
 
         return R.ok();
     }
@@ -59,22 +59,22 @@ public class CategoryController {
     /**
      * 修改
      */
-    @RequestMapping("/update")
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
     //@RequiresPermissions("product:category:update")
-    public R update(@RequestBody CategoryEntity category){
-            categoryService.updateById(category);
+    public R update(@RequestBody CategoryEntity category) {
+        categoryService.updateById(category);
 
         return R.ok();
     }
 
     /**
      * 删除
-     * @RequestBody：获取请求体，必须发送POST请求
-     * SpringMVC自动将请求体的数据(json)，转换为对应的对象
+     *
+     * @RequestBody：获取请求体，必须发送POST请求 SpringMVC自动将请求体的数据(json)，转换为对应的对象
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     //@RequiresPermissions("product:category:delete")
-    public R delete(@RequestBody Long[] catIds){
+    public R delete(@RequestBody Long[] catIds) {
         categoryService.removeMenusByIds(Arrays.asList(catIds));
         categoryService.removeByIds(Arrays.asList(catIds));
 

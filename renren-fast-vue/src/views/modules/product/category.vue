@@ -1,11 +1,16 @@
 <template>
   <div>
+    <el-switch v-model="draggable" active-text="开启拖拽" inactive-text="关闭拖拽"></el-switch>
+    <el-button v-if="draggable" @click="batchSave">批量保存</el-button>
     <el-tree :data="menus"
              :props="defaultProps"
              show-checkbox
              node-key="catId"
              :expand-on-click-node="false"
-             :default-expanded-keys="expandedKey">
+             :default-expanded-keys="expandedKey"
+             :draggable="draggable"
+             :allow-drop="allowDrop"
+             @node-drop="handleDrop">
       <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
         <span>
@@ -50,6 +55,7 @@ export default {
   props: {},
   data () {
     return {
+      draggable: false,
       dialogType: '',
       dialogData: {
         'name': '',
@@ -62,6 +68,7 @@ export default {
         'productCount': 0
       },
       menus: [],
+      updateNodes: [],
       expandedKey: [],
       dialogVisible: false,
       defaultProps: {
@@ -76,6 +83,75 @@ export default {
   watch: {},
   // 方法集合
   methods: {
+    batchSave () {
+      if (this.updateNodes.length === 0) {
+        this.$message({ type: 'info', message: '没有需要保存的修改' })
+        return
+      }
+      this.$http({
+        url: this.$http.adornUrl('/product/category/update/sort'),
+        method: 'post',
+        data: this.$http.adornData(this.updateNodes, false)
+      }).then(({ data }) => {
+        if (data.code === 0) {
+          this.$message({
+            type: 'success',
+            message: '批量保存成功!'
+          })
+          this.updateNodes = []
+          this.getMenus()
+        }
+      })
+    },
+    handleDrop (draggingNode, dropNode, dropType) {
+      // 拖拽时只收集变更，点「批量保存」时再统一提交
+      // 拖拽结束后 Element 已经把节点放到了新位置，并重算了 level
+      // inner 的新父节点是 dropNode；before/after 的新父节点是 dropNode 的父节点
+      const parentNode = dropType === 'inner' ? dropNode : dropNode.parent
+      const parentCid = parentNode.level === 0 ? 0 : parentNode.data.catId
+
+      parentNode.childNodes.forEach((node, index) => {
+        const item = { catId: node.data.catId, sort: index }
+        if (node.data.catId === draggingNode.data.catId) {
+          // 被拖节点：记录新父节点和新层级，并收集所有子孙的新层级
+          item.parentCid = parentCid
+          item.catLevel = node.level
+          this.pushChildLevels(node)
+        }
+        this.updateNodes.push(item)
+      })
+
+      // 把本次涉及的新、旧父节点都记下来，批量保存后一起展开
+      const relatedParents = [parentCid, draggingNode.data.parentCid]
+      relatedParents.forEach(cid => {
+        if (cid && this.expandedKey.indexOf(cid) === -1) {
+          this.expandedKey = this.expandedKey.concat(cid)
+        }
+      })
+      console.log('updateNodes', this.updateNodes)
+    },
+    pushChildLevels (node) {
+      node.childNodes.forEach(child => {
+        this.updateNodes.push({ catId: child.data.catId, catLevel: child.level })
+        this.pushChildLevels(child)
+      })
+    },
+    allowDrop (draggingNode, dropNode, type) {
+      // inner 落到 dropNode 内部；prev/next 为同级兄弟
+      const newLevel = type === 'inner' ? dropNode.level + 1 : dropNode.level
+      const depth = this.getSubtreeDepth(draggingNode)
+      // 最深子孙的层级 = newLevel + depth - 1
+      return newLevel + depth - 1 <= 3
+    },
+    // 子树相对深度（含自身）：叶子为 1
+    getSubtreeDepth (node) {
+      let max = 0
+      const children = node.childNodes || []
+      for (let i = 0; i < children.length; i++) {
+        max = Math.max(max, this.getSubtreeDepth(children[i]))
+      }
+      return max + 1
+    },
     append (data) {
       console.log('append', data)
       this.dialogType = 'add'

@@ -153,3 +153,16 @@ Vue.prototype.$notify = Notification
 Vue.prototype.$message = Message
 
 Vue.prototype.$ELEMENT = { size: 'medium' }
+
+// Element UI 2.x 的原生 checkbox input 带 aria-hidden="true"，
+// 聚焦时 Chrome 会告警 Blocked aria-hidden，挂载后移除该属性
+Vue.mixin({
+  mounted () {
+    if (this.$options.name === 'ElCheckbox') {
+      const input = this.$el.querySelector('.el-checkbox__original')
+      if (input) {
+        input.removeAttribute('aria-hidden')
+      }
+    }
+  }
+})

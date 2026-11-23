@@ -2,7 +2,9 @@
   <div>
     <el-switch v-model="draggable" active-text="开启拖拽" inactive-text="关闭拖拽"></el-switch>
     <el-button v-if="draggable" @click="batchSave">批量保存</el-button>
-    <el-tree :data="menus"
+    <el-button type="danger" @click="batchDelete">批量删除</el-button>
+    <el-tree ref="menuTree"
+             :data="menus"
              :props="defaultProps"
              show-checkbox
              node-key="catId"
@@ -83,6 +85,36 @@ export default {
   watch: {},
   // 方法集合
   methods: {
+    batchDelete () {
+      const checkedNodes = this.$refs.menuTree.getCheckedNodes()
+      if (checkedNodes.length === 0) {
+        this.$message({ type: 'info', message: '请先勾选要删除的分类' })
+        return
+      }
+
+      const ids = checkedNodes.map(node => node.catId)
+      this.$confirm(`是否批量删除选中的 ${ids.length} 个分类?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$http({
+          url: this.$http.adornUrl('/product/category/delete'),
+          method: 'post',
+          data: this.$http.adornData(ids, false)
+        }).then(({ data }) => {
+          if (data.code === 0) {
+            this.$message({
+              type: 'success',
+              message: '批量删除成功!'
+            })
+            // 树会重新加载，之前的拖拽变更一并作废
+            this.updateNodes = []
+            this.getMenus()
+          }
+        })
+      }).catch(() => {})
+    },
     batchSave () {
       if (this.updateNodes.length === 0) {
         this.$message({ type: 'info', message: '没有需要保存的修改' })

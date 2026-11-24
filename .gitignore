@@ -44,5 +44,9 @@ __pycache__/
 # Scraper output
 /output/
 /nacos-server-1.1.3.zip
-/scripts/**
 /nacos/**
+/pms/
+/pms.zip
+/wms.zip
+/CODEBUDDY.md
+/STARTUP.md

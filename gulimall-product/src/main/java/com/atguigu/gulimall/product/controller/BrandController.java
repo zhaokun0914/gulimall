@@ -5,12 +5,10 @@ import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.product.entity.BrandEntity;
 import com.atguigu.gulimall.product.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -55,15 +53,7 @@ public class BrandController {
      */
     @RequestMapping("/save")
     //@RequiresPermissions("product:brand:save")
-    public R save(@Valid @RequestBody BrandEntity brand, BindingResult result) {
-        if (result.hasErrors()) {
-            Map<String, String> map = new HashMap<>();
-            result.getFieldErrors().forEach(item -> {
-                map.put(item.getField(), item.getDefaultMessage());
-            });
-            return R.error(400, "提交的数据不合法").put("data", map);
-        }
-
+    public R save(@Valid @RequestBody BrandEntity brand) {
         brandService.save(brand);
 
         return R.ok();

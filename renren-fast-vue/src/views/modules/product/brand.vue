@@ -159,7 +159,7 @@ export default {
         if (data.code === 0) {
           this.$message({
             type: 'success',
-            message: '保存成功!'
+            message: '状态更新成功'
           })
           this.getDataList()
         }

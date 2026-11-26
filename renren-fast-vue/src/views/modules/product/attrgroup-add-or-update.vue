@@ -16,8 +16,8 @@
     <el-form-item label="组图标" prop="icon">
       <el-input v-model="dataForm.icon" placeholder="组图标"></el-input>
     </el-form-item>
-    <el-form-item label="所属分类id" prop="catelogId">
-      <el-input v-model="dataForm.catelogId" placeholder="所属分类id"></el-input>
+    <el-form-item label="所属分类" prop="catelogId">
+      <el-cascader v-model="dataForm.catelogIds" :options="categorys" :props="props"></el-cascader>
     </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
@@ -32,13 +32,24 @@ export default {
   data () {
     return {
       visible: false,
+      categorys: [],
+      props: {
+        // 指定选项的值为选项对象的某个属性值
+        value: 'catId',
+        // 指定选项标签为选项对象的某个属性值
+        label: 'name',
+        // 指定选项的子选项为选项对象的某个属性值
+        children: 'children'
+      },
       dataForm: {
         attrGroupId: 0,
         attrGroupName: '',
         sort: '',
         descript: '',
         icon: '',
-        catelogId: ''
+        catelogId: 0,
+        // 级联选择器选中的完整分类路径，提交时只取最后一级
+        catelogIds: []
       },
       dataRule: {
         attrGroupName: [
@@ -60,6 +71,15 @@ export default {
     }
   },
   methods: {
+    // 获取三级分类数据，供级联选择器使用
+    getCategories () {
+      this.$http({
+        url: this.$http.adornUrl('/product/category/list/tree'),
+        method: 'get'
+      }).then(({data}) => {
+        this.categorys = data.page
+      })
+    },
     init (id) {
       this.dataForm.attrGroupId = id || 0
       this.visible = true
@@ -95,7 +115,8 @@ export default {
               'sort': this.dataForm.sort,
               'descript': this.dataForm.descript,
               'icon': this.dataForm.icon,
-              'catelogId': this.dataForm.catelogId
+              // 级联选择器给的是完整路径，只提交最后一级分类 id
+              'catelogId': this.dataForm.catelogIds[this.dataForm.catelogIds.length - 1]
             })
           }).then(({data}) => {
             if (data && data.code === 0) {
@@ -115,6 +136,9 @@ export default {
         }
       })
     }
+  },
+  created () {
+    this.getCategories()
   }
 }
 </script>

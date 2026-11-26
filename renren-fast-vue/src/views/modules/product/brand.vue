@@ -79,9 +79,10 @@
         fixed="right"
         header-align="center"
         align="center"
-        width="150"
+        width="200"
         label="操作">
         <template slot-scope="scope">
+          <el-button type="text" size="small" @click="updateCatelogHandle(scope.row.brandId)">关联分类</el-button>
           <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.brandId)">修改</el-button>
           <el-button type="text" size="small" @click="deleteHandle(scope.row.brandId)">删除</el-button>
         </template>
@@ -98,6 +99,32 @@
     </el-pagination>
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getDataList"></add-or-update>
+
+    <!-- 关联分类弹窗 -->
+    <el-dialog title="关联分类" :visible.sync="cateRelationDialogVisible" width="30%" @closed="dialogClosed">
+      <el-popover placement="right-end" v-model="popCatelogSelectVisible">
+        <el-cascader v-model="catelogPath" :options="categories" :props="props"></el-cascader>
+        <div style="text-align: right; margin: 0">
+          <el-button size="mini" type="text" @click="popCatelogSelectVisible = false">取消</el-button>
+          <el-button type="primary" size="mini" @click="addCatelogSelect">确定</el-button>
+        </div>
+        <el-button slot="reference">新增关联</el-button>
+      </el-popover>
+      <el-table :data="categoryBrandRelation" style="width: 100%;">
+        <el-table-column prop="id" label="id"></el-table-column>
+        <el-table-column prop="brandName" label="品牌名"></el-table-column>
+        <el-table-column prop="catelogName" label="分类名"></el-table-column>
+        <el-table-column fixed="right" header-align="center" align="center" width="80" label="操作">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="deleteRow(scope.row.id)">移除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cateRelationDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="cateRelationDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -107,6 +134,17 @@ import AddOrUpdate from './brand-add-or-update'
 export default {
   data () {
     return {
+      brandId: 0,
+      categoryBrandRelation: [],
+      cateRelationDialogVisible: false,
+      popCatelogSelectVisible: false,
+      categories: [],
+      props: {
+        value: 'catId',
+        label: 'name',
+        children: 'children'
+      },
+      catelogPath: [],
       dataForm: {
         key: ''
       },
@@ -125,7 +163,79 @@ export default {
   activated () {
     this.getDataList()
   },
+  created () {
+    this.queryCategoryTree()
+  },
   methods: {
+    // 关闭关联分类弹窗时清空已选分类路径
+    dialogClosed () {
+      this.catelogPath = []
+    },
+    // 初始化三级分类数据，供级联选择器使用
+    queryCategoryTree () {
+      this.$http({
+        url: this.$http.adornUrl('/product/category/list/tree'),
+        method: 'get'
+      }).then(({data}) => {
+        this.categories = data.page
+      })
+    },
+    // 打开关联分类弹窗，并查询当前品牌已关联的分类
+    updateCatelogHandle (brandId) {
+      this.cateRelationDialogVisible = true
+      this.brandId = brandId
+      this.getCateRelation()
+    },
+    // 新增品牌与分类的关联
+    addCatelogSelect () {
+      this.popCatelogSelectVisible = false
+      this.$http({
+        url: this.$http.adornUrl('/product/categorybrandrelation/save'),
+        method: 'post',
+        data: this.$http.adornData({
+          brandId: this.brandId,
+          catelogId: this.catelogPath[this.catelogPath.length - 1]
+        }, false)
+      }).then(({data}) => {
+        if (data && data.code === 0) {
+          this.$message({
+            type: 'success',
+            message: '新增成功'
+          })
+          this.getCateRelation()
+        }
+      })
+    },
+    // 查询当前品牌关联的分类列表
+    getCateRelation () {
+      this.$http({
+        url: this.$http.adornUrl('/product/categorybrandrelation/catelog/list'),
+        method: 'get',
+        params: this.$http.adornParams({
+          brandId: this.brandId
+        })
+      }).then(({data}) => {
+        if (data && data.code === 0) {
+          this.categoryBrandRelation = data.data
+        }
+      })
+    },
+    // 移除关联分类（按中间表主键 id 删除）
+    deleteRow (id) {
+      this.$http({
+        url: this.$http.adornUrl('/product/categorybrandrelation/delete'),
+        method: 'post',
+        data: this.$http.adornData([id], false)
+      }).then(({data}) => {
+        if (data && data.code === 0) {
+          this.$message({
+            type: 'success',
+            message: '移除成功'
+          })
+          this.getCateRelation()
+        }
+      })
+    },
     // 获取数据列表
     getDataList () {
       this.dataListLoading = true

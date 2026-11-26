@@ -25,6 +25,11 @@ public interface CategoryService extends IService<CategoryEntity> {
      */
     Long[] findCatelogPath(Long catelogId);
 
+    /**
+     * 更新分类，并同步更新其他表中的冗余分类名
+     */
+    void updateCascade(CategoryEntity category);
+
     Integer removeMenusByIds(List<Long> list);
 }
 

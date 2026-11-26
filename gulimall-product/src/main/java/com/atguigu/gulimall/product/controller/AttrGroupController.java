@@ -4,6 +4,7 @@ import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.product.entity.AttrGroupEntity;
 import com.atguigu.gulimall.product.service.AttrGroupService;
+import com.atguigu.gulimall.product.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,8 @@ import java.util.Map;
 public class AttrGroupController {
     @Autowired
     private AttrGroupService attrGroupService;
+    @Autowired
+    private CategoryService categoryService;
 
     /**
      * 列表
@@ -54,6 +57,11 @@ public class AttrGroupController {
     //@RequiresPermissions("product:attrgroup:info")
     public R info(@PathVariable("attrGroupId") Long attrGroupId){
             AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
+
+        // 查出分类完整路径，供修改时级联选择器回显
+        if (attrGroup.getCatelogId() != null) {
+            attrGroup.setCatelogPath(categoryService.findCatelogPath(attrGroup.getCatelogId()));
+        }
 
         return R.ok().put("attrGroup", attrGroup);
     }

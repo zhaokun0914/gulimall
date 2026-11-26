@@ -2,7 +2,8 @@
   <el-dialog
     :title="!dataForm.attrGroupId ? '新增' : '修改'"
     :close-on-click-modal="false"
-    :visible.sync="visible">
+    :visible.sync="visible"
+    @closed="dialogClose">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="100px">
     <el-form-item label="组名" prop="attrGroupName">
       <el-input v-model="dataForm.attrGroupName" placeholder="组名"></el-input>
@@ -17,7 +18,7 @@
       <el-input v-model="dataForm.icon" placeholder="组图标"></el-input>
     </el-form-item>
     <el-form-item label="所属分类" prop="catelogId">
-      <el-cascader v-model="dataForm.catelogIds" :options="categorys" :props="props"></el-cascader>
+      <el-cascader filterable v-model="dataForm.catelogPath" :options="categorys" :props="props"></el-cascader>
     </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
@@ -49,7 +50,7 @@ export default {
         icon: '',
         catelogId: 0,
         // 级联选择器选中的完整分类路径，提交时只取最后一级
-        catelogIds: []
+        catelogPath: []
       },
       dataRule: {
         attrGroupName: [
@@ -71,6 +72,10 @@ export default {
     }
   },
   methods: {
+    // 关闭弹窗时清空级联选择器，避免下次打开还保留上次的选中路径
+    dialogClose () {
+      this.dataForm.catelogPath = []
+    },
     // 获取三级分类数据，供级联选择器使用
     getCategories () {
       this.$http({
@@ -97,6 +102,8 @@ export default {
               this.dataForm.descript = data.attrGroup.descript
               this.dataForm.icon = data.attrGroup.icon
               this.dataForm.catelogId = data.attrGroup.catelogId
+              // 后台返回的完整分类路径，用于级联选择器回显
+              this.dataForm.catelogPath = data.attrGroup.catelogPath
             }
           })
         }
@@ -116,7 +123,7 @@ export default {
               'descript': this.dataForm.descript,
               'icon': this.dataForm.icon,
               // 级联选择器给的是完整路径，只提交最后一级分类 id
-              'catelogId': this.dataForm.catelogIds[this.dataForm.catelogIds.length - 1]
+              'catelogId': this.dataForm.catelogPath[this.dataForm.catelogPath.length - 1]
             })
           }).then(({data}) => {
             if (data && data.code === 0) {

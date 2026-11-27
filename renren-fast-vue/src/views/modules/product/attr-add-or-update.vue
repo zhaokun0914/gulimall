@@ -158,7 +158,6 @@ export default {
     },
     init (id) {
       this.dataForm.attrId = id || 0
-      this.dataForm.attrType = this.type
       this.visible = true
       this.$nextTick(() => {
         // 弹窗关闭后组件不会销毁，每次打开都重新拉取分类，避免上次请求失败后一直为空
@@ -166,6 +165,9 @@ export default {
           this.$refs.categoryCascader.getCategories()
         }
         this.$refs['dataForm'].resetFields()
+        // resetFields 会把字段还原到挂载时的初始值（attrType 默认为 1），
+        // 因此必须在 reset 之后再按页面类型设置，销售属性页新增才不会落库成规格参数
+        this.dataForm.attrType = this.type
         if (this.dataForm.attrId) {
           this.$http({
             url: this.$http.adornUrl(`/product/attr/info/${this.dataForm.attrId}`),

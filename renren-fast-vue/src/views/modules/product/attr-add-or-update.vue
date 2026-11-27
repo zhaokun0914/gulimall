@@ -25,10 +25,11 @@
       <el-input v-model="dataForm.icon" placeholder="属性图标"></el-input>
     </el-form-item>
     <el-form-item label="所属分类" prop="catelogId">
-      <category-cascader :catelogPath.sync="catelogPath"></category-cascader>
+      <category-cascader ref="categoryCascader" :catelogPath.sync="catelogPath"></category-cascader>
     </el-form-item>
     <el-form-item label="所属分组" prop="attrGroupId" v-if="type === 1">
-      <el-select ref="groupSelect" v-model="dataForm.attrGroupId" placeholder="请选择">
+      <el-select ref="groupSelect" v-model="dataForm.attrGroupId" placeholder="请选择"
+                 @visible-change="handleGroupVisibleChange">
         <el-option v-for="item in attrGroups" :key="item.attrGroupId" :label="item.attrGroupName"
                    :value="item.attrGroupId"></el-option>
       </el-select>
@@ -123,20 +124,7 @@ export default {
       }
       this.dataForm.catelogId = path[path.length - 1]
       if (path.length === 3) {
-        this.$http({
-          url: this.$http.adornUrl(`/product/attrgroup/list/${path[path.length - 1]}`),
-          method: 'get',
-          params: this.$http.adornParams({
-            page: 1,
-            limit: 1000
-          })
-        }).then(({data}) => {
-          if (data && data.code === 0) {
-            this.attrGroups = data.page.list
-          } else {
-            this.$message.error(data.msg)
-          }
-        })
+        this.queryAttrGroups(path[path.length - 1])
       } else {
         this.$message.error('请选择正确的分类')
         this.dataForm.catelogId = ''
@@ -144,11 +132,39 @@ export default {
     }
   },
   methods: {
+    // 按三级分类查询所属分组
+    queryAttrGroups (catelogId) {
+      this.$http({
+        url: this.$http.adornUrl(`/product/attrgroup/list/${catelogId}`),
+        method: 'get',
+        params: this.$http.adornParams({
+          page: 1,
+          limit: 1000
+        })
+      }).then(({data}) => {
+        if (data && data.code === 0) {
+          this.attrGroups = data.page.list || []
+        } else {
+          this.attrGroups = []
+          this.$message.error(data.msg || '查询分组失败')
+        }
+      })
+    },
+    // 打开分组下拉时如果还没有数据，重新查询，避免首次请求失败后一直空白
+    handleGroupVisibleChange (visible) {
+      if (visible && this.attrGroups.length === 0 && this.dataForm.catelogId) {
+        this.queryAttrGroups(this.dataForm.catelogId)
+      }
+    },
     init (id) {
       this.dataForm.attrId = id || 0
       this.dataForm.attrType = this.type
       this.visible = true
       this.$nextTick(() => {
+        // 弹窗关闭后组件不会销毁，每次打开都重新拉取分类，避免上次请求失败后一直为空
+        if (this.$refs.categoryCascader) {
+          this.$refs.categoryCascader.getCategories()
+        }
         this.$refs['dataForm'].resetFields()
         if (this.dataForm.attrId) {
           this.$http({

@@ -2,13 +2,18 @@ package com.atguigu.gulimall.product.controller;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.product.entity.AttrEntity;
 import com.atguigu.gulimall.product.entity.AttrGroupEntity;
+import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
 import com.atguigu.gulimall.product.service.AttrGroupService;
+import com.atguigu.gulimall.product.service.AttrService;
 import com.atguigu.gulimall.product.service.CategoryService;
+import com.atguigu.gulimall.product.vo.AttrGroupRelationVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -26,6 +31,10 @@ public class AttrGroupController {
     private AttrGroupService attrGroupService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private AttrService attrService;
+    @Autowired
+    private AttrAttrgroupRelationService attrAttrgroupRelationService;
 
     /**
      * 列表
@@ -45,6 +54,51 @@ public class AttrGroupController {
     //@RequiresPermissions("product:attrgroup:list")
     public R listByCatelogId(@RequestParam Map<String, Object> params, @PathVariable("catelogId") Long catelogId){
         PageUtils page = attrGroupService.queryPage(params, catelogId);
+
+        return R.ok().put("page", page);
+    }
+
+    /**
+     * 查询属性分组已关联的属性
+     */
+    @GetMapping("/{attrgroupId}/attr/relation")
+    //@RequiresPermissions("product:attrgroup:list")
+    public R attrRelation(@PathVariable("attrgroupId") Long attrgroupId){
+        List<AttrEntity> entities = attrService.getRelationAttr(attrgroupId);
+
+        return R.ok().put("data", entities);
+    }
+
+    /**
+     * 新增属性与分组的关联
+     */
+    @PostMapping("/attr/relation")
+    //@RequiresPermissions("product:attrgroup:update")
+    public R addRelation(@RequestBody List<AttrGroupRelationVo> vos){
+        attrAttrgroupRelationService.saveBatch(vos);
+
+        return R.ok();
+    }
+
+    /**
+     * 删除属性与分组的关联
+     */
+    @PostMapping("/attr/relation/delete")
+    //@RequiresPermissions("product:attrgroup:update")
+    public R deleteRelation(@RequestBody AttrGroupRelationVo[] vos){
+        attrService.deleteRelation(vos);
+
+        return R.ok();
+    }
+
+    /**
+     * 查询属性分组可以关联的属性（同分类下还未被其他分组关联）
+     */
+    @GetMapping("/{attrgroupId}/noattr/relation")
+    //@RequiresPermissions("product:attrgroup:list")
+    public R attrNoRelation(@PathVariable("attrgroupId") Long attrgroupId,
+                            @RequestParam Map<String, Object> params){
+        PageUtils page = attrService.getNoRelationAttr(params, attrgroupId);
 
         return R.ok().put("page", page);
     }

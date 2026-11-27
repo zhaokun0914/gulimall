@@ -11,6 +11,7 @@
           </el-form-item>
           <el-form-item>
             <el-button @click="getDataList()">查询</el-button>
+            <el-button type="success" @click="getAllDataList()">查询全部</el-button>
             <el-button v-if="isAuth('product:attrgroup:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
             <el-button v-if="isAuth('product:attrgroup:delete')" type="danger" @click="deleteHandle()"
                        :disabled="dataListSelections.length <= 0">批量删除
@@ -132,6 +133,12 @@ export default {
         this.pageIndex = 1
         this.getDataList()
       }
+    },
+    // 查询全部时把分类条件重置为 0，同时保留关键字模糊查询
+    getAllDataList () {
+      this.catId = 0
+      this.pageIndex = 1
+      this.getDataList()
     },
     // 获取数据列表
     getDataList () {

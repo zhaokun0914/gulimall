@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.product.constant;
+package com.atguigu.common.constant;
 
 /**
  * 商品服务常量

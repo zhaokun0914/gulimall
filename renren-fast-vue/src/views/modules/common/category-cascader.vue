@@ -11,6 +11,8 @@
 </template>
 
 <script>
+import PubSub from 'pubsub-js'
+
 // 分类级联选择器：通过 .sync 与父组件的 catelogPath 双向绑定
 export default {
   props: {
@@ -38,6 +40,7 @@ export default {
     },
     paths (val) {
       this.$emit('update:catelogPath', val)
+      PubSub.publish('catPath', val)
     }
   },
   methods: {

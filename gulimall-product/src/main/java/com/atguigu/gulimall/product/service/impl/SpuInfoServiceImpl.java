@@ -11,6 +11,7 @@ import com.atguigu.common.utils.Query;
 import com.atguigu.gulimall.product.dao.SpuInfoDao;
 import com.atguigu.gulimall.product.entity.SpuInfoEntity;
 import com.atguigu.gulimall.product.service.SpuInfoService;
+import com.atguigu.gulimall.product.vo.SpuSaveVo;
 
 
 @Service("spuInfoService")
@@ -24,6 +25,14 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    /**
+     * 保存商品（SPU + SKU）完整信息
+     */
+    @Override
+    public void saveSpuInfo(SpuSaveVo vo) {
+
     }
 
 }
